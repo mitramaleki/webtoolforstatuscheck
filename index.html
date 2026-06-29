@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Status Researcher</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-alt: #f0efe9;
+    --border: #e2e0d8;
+    --border-strong: #c8c6bc;
+    --text: #1a1916;
+    --text-sec: #6b6960;
+    --text-muted: #9c9a92;
+    --accent: #2563eb;
+    --accent-bg: #eff6ff;
+    --accent-border: #bfdbfe;
+    --accent-text: #1d4ed8;
+    --success: #16a34a;
+    --success-bg: #f0fdf4;
+    --success-border: #bbf7d0;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --danger-border: #fecaca;
+    --warning: #d97706;
+    --warning-bg: #fffbeb;
+    --warning-border: #fde68a;
+    --purple: #7c3aed;
+    --purple-bg: #f5f3ff;
+    --purple-border: #ddd6fe;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── Layout ─── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    width: 30px; height: 30px;
+    background: var(--text);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .topbar-logo svg { width: 16px; height: 16px; fill: #fff; }
+  .topbar h1 { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
+  .topbar-sep { color: var(--border-strong); }
+  .topbar-sub { font-size: 13px; color: var(--text-sec); }
+
+  .layout { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 56px); }
+
+  /* ─── Sidebar ─── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar-section { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 10px 6px; margin-top: 12px; }
+  .sidebar-section:first-child { margin-top: 0; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius);
+    font-size: 14px; color: var(--text-sec);
+    cursor: pointer; border: none; background: none;
+    width: 100%; text-align: left; font-family: inherit;
+    transition: background 0.12s, color 0.12s;
+  }
+  .nav-item:hover { background: var(--surface-alt); color: var(--text); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent-text); font-weight: 500; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto; background: var(--accent-bg); color: var(--accent-text);
+    font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px;
+  }
+
+  /* ─── Main ─── */
+  .main { overflow-y: auto; }
+  .pane { display: none; padding: 2rem; max-width: 1000px; }
+  .pane.active { display: block; }
+  .pane-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); margin-bottom: 4px; }
+  .pane-desc { font-size: 14px; color: var(--text-sec); margin-bottom: 1.5rem; }
+
+  /* ─── Cards ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .card-title svg { width: 15px; height: 15px; color: var(--text-sec); }
+
+  /* ─── Form elements ─── */
+  label { font-size: 12px; font-weight: 600; color: var(--text-sec); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  textarea, input[type=text], select {
+    width: 100%;
+    font-size: 13px;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  textarea:focus, input[type=text]:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  textarea { resize: vertical; min-height: 150px; line-height: 1.7; }
+  select { font-family: inherit; cursor: pointer; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .field { margin-bottom: 1rem; }
+  .field:last-child { margin-bottom: 0; }
+
+  /* ─── Chips ─── */
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip {
+    padding: 5px 12px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 20px;
+    cursor: pointer; background: var(--surface); color: var(--text-sec);
+    transition: all 0.12s; user-select: none;
+  }
+  .chip:hover { border-color: var(--border-strong); color: var(--text); }
+  .chip.on { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent-text); font-weight: 600; }
+  .chip.poster-on { background: var(--purple-bg); border-color: var(--purple-border); color: var(--purple); font-weight: 600; }
+  .chip-section-label { font-size: 11px; color: var(--text-muted); margin-top: 8px; margin-bottom: 2px; font-weight: 500; }
+
+  /* ─── Buttons ─── */
+  .btn {
+    padding: 9px 20px; border-radius: var(--radius); font-size: 14px;
+    cursor: pointer; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text); font-weight: 500;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: inherit; transition: all 0.12s;
+  }
+  .btn:hover { background: var(--surface-alt); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover:not(:disabled) { background: #1d4ed8; border-color: #1d4ed8; }
+  .btn-danger { color: var(--danger); border-color: var(--danger-border); }
+  .btn-danger:hover { background: var(--danger-bg); }
+  .btn-sm { padding: 6px 14px; font-size: 13px; }
+  .btn-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* ─── Progress ─── */
+  .progress-wrap { margin: 1rem 0; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .progress-label { font-size: 13px; color: var(--text-sec); }
+  .progress-count { font-size: 13px; font-weight: 600; color: var(--text); }
+  .progress-bar { height: 6px; background: var(--surface-alt); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
+
+  /* ─── Stats ─── */
+  .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat-num { font-size: 26px; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+  .stat-lbl { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .stat-card.s-active .stat-num { color: var(--success); }
+  .stat-card.s-closed .stat-num { color: var(--danger); }
+  .stat-card.s-merged .stat-num { color: var(--warning); }
+  .stat-card.s-renamed .stat-num { color: var(--purple); }
+
+  /* ─── Table ─── */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px; }
+  thead th {
+    padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px;
+    color: var(--text-sec); background: var(--surface-alt); text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  thead th:first-child { border-radius: 10px 0 0 0; }
+  thead th:last-child { border-radius: 0 10px 0 0; }
+  tbody tr:hover td { background: #fafaf8; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ─── Badges ─── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .badge-active { background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border); }
+  .badge-active .badge-dot { background: var(--success); }
+  .badge-closed { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+  .badge-closed .badge-dot { background: var(--danger); }
+  .badge-merged { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
+  .badge-merged .badge-dot { background: var(--warning); }
+  .badge-renamed { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+  .badge-renamed .badge-dot { background: var(--purple); }
+  .badge-unknown { background: var(--surface-alt); color: var(--text-muted); border: 1px solid var(--border); }
+  .badge-unknown .badge-dot { background: var(--text-muted); }
+  .badge-searching { background: var(--accent-bg); color: var(--accent-text); border: 1px solid var(--accent-border); }
+  .badge-searching .badge-dot { background: var(--accent); }
+  .badge-poster { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); font-size: 10px; padding: 2px 7px; }
+  .badge-normal { background: var(--surface-alt); color: var(--text-sec); border: 1px solid var(--border); font-size: 10px; padding: 2px 7px; }
+
+  /* ─── Info boxes ─── */
+  .info-box { background: var(--accent-bg); border: 1px solid var(--accent-border); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--accent-text); margin-bottom: 1rem; line-height: 1.5; }
+  .warn-box { background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: #92400e; margin-bottom: 1rem; }
+
+  /* ─── Links ─── */
+  a.url-link { color: var(--accent-text); text-decoration: none; font-size: 12px; word-break: break-all; }
+  a.url-link:hover { text-decoration: underline; }
+
+  /* ─── Notes cell ─── */
+  .notes-cell { font-size: 12px; color: var(--text-sec); line-height: 1.5; max-width: 220px; }
+
+  /* ─── Spinner ─── */
+  .spinner { width: 12px; height: 12px; border: 2px solid var(--accent-border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.65s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Filter row ─── */
+  .filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-row select { width: auto; font-family: inherit; font-size: 13px; padding: 6px 10px; }
+  .filter-row input[type=text] { width: 220px; font-family: inherit; font-size: 13px; padding: 6px 10px; }
+
+  /* ─── API key ─── */
+  .api-wrap { position: relative; }
+  .api-wrap input { padding-right: 90px; font-family: inherit; }
+  .api-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--accent-text); cursor: pointer; background: none; border: none; font-family: inherit; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 780px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 1px solid var(--border); padding: 0.75rem; }
+    .grid2 { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* ─── Concurrency slider ─── */
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-val { font-size: 20px; font-weight: 700; color: var(--accent); min-width: 28px; }
+
+  /* ─── Country group ─── */
+  .country-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 12px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42" stroke="#fff" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+  </div>
+  <h1>Company Status Researcher</h1>
+  <span class="topbar-sep">·</span>
+  <span class="topbar-sub">AI-powered company research tool</span>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">Workflow</div>
+    <button class="nav-item active" onclick="nav('setup')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M5 5h6M5 11h3"/></svg>
+      Input setup
+    </button>
+    <button class="nav-item" onclick="nav('run')" id="nav-run">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6 5.5l4 2.5-4 2.5V5.5z" fill="currentColor" stroke="none"/></svg>
+      Run research
+      <span class="nav-badge" id="nav-badge-run" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="nav('results')" id="nav-results">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Results
+      <span class="nav-badge" id="nav-badge-results" style="display:none">0</span>
+    </button>
+
+    <div class="sidebar-section">Export</div>
+    <button class="nav-item" onclick="downloadCSV()" id="btn-csv" style="opacity:0.4">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L9 2z"/><path d="M9 2v4h4"/><path d="M5 9l2 2 4-4"/></svg>
+      Download CSV
+    </button>
+    <button class="nav-item" onclick="downloadTXT()" id="btn-txt" style="opacity:0.4">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2H4a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V6L9 2z"/><path d="M9 2v4h4"/><path d="M5 8h6M5 11h3"/></svg>
+      Download TXT
+    </button>
+
+    <div class="sidebar-section">Settings</div>
+    <button class="nav-item" onclick="nav('settings')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 2v1M8 13v1M2 8h1M13 8h1M3.93 3.93l.7.7M11.37 11.37l.7.7M3.93 12.07l.7-.7M11.37 4.63l.7-.7"/></svg>
+      API &amp; settings
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- SETUP PANE -->
+    <div class="pane active" id="pane-setup">
+      <div class="pane-title">Input setup</div>
+      <div class="pane-desc">Paste your company list, configure filters, then run AI-powered research to check their current status.</div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M5 5h6M5 11h3"/></svg>
+          Company data
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Company names — one per line</label>
+            <textarea id="names-input" placeholder="Acme Corp&#10;Global Search Partners GmbH&#10;TechVentures Inc&#10;Headhunters International&#10;Nordic Talent Agency"></textarea>
+          </div>
+          <div class="field">
+            <label>Previous / known URLs — one per line, matching order above (optional)</label>
+            <textarea id="urls-input" placeholder="https://acmecorp.com&#10;https://globalsearch.de&#10;https://techventures.io&#10;https://headhunters.com&#10;https://nordictalent.se"></textarea>
+          </div>
+        </div>
+        <div style="margin-top:6px">
+          <div class="info-box">
+            Tip: paste a tab-separated or comma-separated list into the names field and it will be split automatically. For best results, include the previous URL — it helps the AI understand what changed.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+          Country / region filter
+        </div>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Select which countries to include. Leave all unselected to include everything.</p>
+
+        <div class="chip-section-label">Americas</div>
+        <div class="chip-group" id="chips-americas">
+          <span class="chip" data-country="USA" onclick="toggleChip(this)">🇺🇸 USA</span>
+          <span class="chip" data-country="Canada" onclick="toggleChip(this)">🇨🇦 Canada</span>
+          <span class="chip" data-country="Mexico" onclick="toggleChip(this)">🇲🇽 Mexico</span>
+          <span class="chip" data-country="Brazil" onclick="toggleChip(this)">🇧🇷 Brazil</span>
+          <span class="chip" data-country="Argentina" onclick="toggleChip(this)">🇦🇷 Argentina</span>
+          <span class="chip" data-country="Colombia" onclick="toggleChip(this)">🇨🇴 Colombia</span>
+          <span class="chip" data-country="Chile" onclick="toggleChip(this)">🇨🇱 Chile</span>
+        </div>
+
+        <div class="chip-section-label" style="margin-top:12px">Western Europe</div>
+        <div class="chip-group" id="chips-west-eu">
+          <span class="chip" data-country="Germany" onclick="toggleChip(this)">🇩🇪 Germany</span>
+          <span class="chip" data-country="UK" onclick="toggleChip(this)">🇬🇧 UK</span>
+          <span class="chip" data-country="France" onclick="toggleChip(this)">🇫🇷 France</span>
+          <span class="chip" data-country="Netherlands" onclick="toggleChip(this)">🇳🇱 Netherlands</span>
+          <span class="chip" data-country="Belgium" onclick="toggleChip(this)">🇧🇪 Belgium</span>
+          <span class="chip" data-country="Switzerland" onclick="toggleChip(this)">🇨🇭 Switzerland</span>
+          <span class="chip" data-country="Austria" onclick="toggleChip(this)">🇦🇹 Austria</span>
+          <span class="chip" data-country="Spain" onclick="toggleChip(this)">🇪🇸 Spain</span>
+          <span class="chip" data-country="Portugal" onclick="toggleChip(this)">🇵🇹 Portugal</span>
+          <span class="chip" data-country="Italy" onclick="toggleChip(this)">🇮🇹 Italy</span>
+          <span class="chip" data-country="Ireland" onclick="toggleChip(this)">🇮🇪 Ireland</span>
+          <span class="chip" data-country="Luxembourg" onclick="toggleChip(this)">🇱🇺 Luxembourg</span>
+        </div>
+
+        <div class="chip-section-label" style="margin-top:12px">Northern Europe</div>
+        <div class="chip-group" id="chips-north-eu">
+          <span class="chip" data-country="Sweden" onclick="toggleChip(this)">🇸🇪 Sweden</span>
+          <span class="chip" data-country="Norway" onclick="toggleChip(this)">🇳🇴 Norway</span>
+          <span class="chip" data-country="Denmark" onclick="toggleChip(this)">🇩🇰 Denmark</span>
+          <span class="chip" data-country="Finland" onclick="toggleChip(this)">🇫🇮 Finland</span>
+          <span class="chip" data-country="Iceland" onclick="toggleChip(this)">🇮🇸 Iceland</span>
+        </div>
+
+        <div class="chip-section-label" style="margin-top:12px">Eastern &amp; Southern Europe</div>
+        <div class="chip-group" id="chips-east-eu">
+          <span class="chip" data-country="Poland" onclick="toggleChip(this)">🇵🇱 Poland</span>
+          <span class="chip" data-country="Czech Republic" onclick="toggleChip(this)">🇨🇿 Czech Republic</span>
+          <span class="chip" data-country="Hungary" onclick="toggleChip(this)">🇭🇺 Hungary</span>
+          <span class="chip" data-country="Romania" onclick="toggleChip(this)">🇷🇴 Romania</span>
+          <span class="chip" data-country="Slovakia" onclick="toggleChip(this)">🇸🇰 Slovakia</span>
+          <span class="chip" data-country="Ukraine" onclick="toggleChip(this)">🇺🇦 Ukraine</span>
+          <span class="chip" data-country="Russia" onclick="toggleChip(this)">🇷🇺 Russia</span>
+          <span class="chip" data-country="Greece" onclick="toggleChip(this)">🇬🇷 Greece</span>
+          <span class="chip" data-country="Croatia" onclick="toggleChip(this)">🇭🇷 Croatia</span>
+          <span class="chip" data-country="Serbia" onclick="toggleChip(this)">🇷🇸 Serbia</span>
+          <span class="chip" data-country="Slovenia" onclick="toggleChip(this)">🇸🇮 Slovenia</span>
+          <span class="chip" data-country="Bulgaria" onclick="toggleChip(this)">🇧🇬 Bulgaria</span>
+          <span class="chip" data-country="Other Europe" onclick="toggleChip(this)">🌍 Other Europe</span>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="selectRegion('all')">Select all</button>
+          <button class="btn btn-sm" onclick="selectRegion('none')">Clear all</button>
+          <button class="btn btn-sm" onclick="selectRegion('europe')">All Europe</button>
+          <button class="btn btn-sm" onclick="selectRegion('americas')">All Americas</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z"/><path d="M8 6v4M8 5v.5"/></svg>
+          Company type filter
+        </div>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Choose which company types to research. The AI will classify each company during research.</p>
+        <div class="chip-group">
+          <span class="chip on" id="chip-type-all" onclick="setTypeFilter('all')">All companies</span>
+          <span class="chip" id="chip-type-poster" onclick="setTypeFilter('poster')">🎯 Poster / headhunters only</span>
+          <span class="chip" id="chip-type-normal" onclick="setTypeFilter('normal')">🏢 Normal companies only</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px">
+          <strong>Poster / headhunter</strong> = recruitment agencies, executive search firms, staffing companies, job boards that post on behalf of clients.
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h10M8 3v10"/></svg>
+          Research speed
+        </div>
+        <div class="field">
+          <label>Companies searched at the same time</label>
+          <div class="slider-row">
+            <input type="range" min="1" max="5" value="2" id="concurrency" oninput="document.getElementById('conc-val').textContent=this.value">
+            <span class="slider-val" id="conc-val">2</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:4px">Higher = faster but may hit API rate limits. 2–3 is recommended.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-primary" onclick="prepareAndRun()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:15px;height:15px"><circle cx="8" cy="8" r="6"/><path d="M6 5.5l4 2.5-4 2.5V5.5z" fill="white" stroke="none"/></svg>
+          Start research
+        </button>
+        <span style="font-size:13px;color:var(--text-muted)" id="input-count"></span>
+      </div>
+    </div>
+
+    <!-- RUN PANE -->
+    <div class="pane" id="pane-run">
+      <div class="pane-title">Research in progress</div>
+      <div class="pane-desc">The AI is searching the web for each company. Results appear as they complete.</div>
+
+      <div class="card">
+        <div class="progress-wrap">
+          <div class="progress-header">
+            <span class="progress-label" id="prog-label">Starting…</span>
+            <span class="progress-count" id="prog-count">0 / 0</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+        </div>
+        <div class="btn-group" style="margin-top:10px">
+          <button class="btn btn-danger btn-sm" id="btn-stop" onclick="stopResearch()">Stop</button>
+          <button class="btn btn-sm" id="btn-go-results" style="display:none" onclick="nav('results')">
+            View full results →
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Company</th>
+              <th>Previous URL</th>
+              <th>Status</th>
+              <th>New / current URL</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="run-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RESULTS PANE -->
+    <div class="pane" id="pane-results">
+      <div class="pane-title">Results</div>
+      <div class="pane-desc">Research complete. Filter, review, and export your findings.</div>
+
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div class="filter-row">
+        <select id="filter-status" onchange="renderResults()">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="closed">Closed</option>
+          <option value="merged">Merged / acquired</option>
+          <option value="renamed">Renamed / new URL</option>
+          <option value="unknown">Unknown</option>
+        </select>
+        <select id="filter-type" onchange="renderResults()">
+          <option value="">All types</option>
+          <option value="poster">Poster / headhunter</option>
+          <option value="normal">Normal company</option>
+        </select>
+        <select id="filter-country" onchange="renderResults()">
+          <option value="">All countries</option>
+        </select>
+        <input type="text" id="filter-search" placeholder="Search company name…" oninput="renderResults()" style="font-family:inherit">
+        <button class="btn btn-sm" onclick="clearFilters()">Clear filters</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Company</th>
+              <th>Country</th>
+              <th>Type</th>
+              <th>Previous URL</th>
+              <th>Status</th>
+              <th>New / current URL</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS PANE -->
+    <div class="pane" id="pane-settings">
+      <div class="pane-title">API &amp; settings</div>
+      <div class="pane-desc">Configure your Anthropic API key to enable AI-powered research.</div>
+
+      <div class="card">
+        <div class="card-title">Anthropic API key</div>
+        <div class="field">
+          <label>API key</label>
+          <div class="api-wrap">
+            <input type="password" id="api-key-input" placeholder="sk-ant-…" oninput="saveKey()">
+            <button class="api-toggle" onclick="toggleKeyVis()">show</button>
+          </div>
+        </div>
+        <div class="info-box">
+          Your key is stored only in your browser's localStorage — it is never sent anywhere except directly to api.anthropic.com. Get a key at <a href="https://console.anthropic.com" target="_blank" style="color:inherit;font-weight:600">console.anthropic.com</a>.
+        </div>
+        <div class="warn-box" id="key-status" style="display:none"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">About this tool</div>
+        <p style="font-size:13px;color:var(--text-sec);line-height:1.7">
+          This tool uses Claude claude-sonnet-4-6 with web search to research the current status of companies. For each company it:
+        </p>
+        <ul style="font-size:13px;color:var(--text-sec);line-height:2;padding-left:18px;margin-top:8px">
+          <li>Searches for the company's current operational status</li>
+          <li>Checks if the company has been acquired, merged, or closed</li>
+          <li>Finds the new URL if the company rebranded or changed domain</li>
+          <li>Classifies the country of origin</li>
+          <li>Determines if the company is a recruitment / poster / headhunter firm</li>
+        </ul>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────
+let companies = [];
+let results = [];
+let running = false;
+let stopFlag = false;
+let typeFilter = 'all';
+
+// ─── Nav ─────────────────────────────────────────────────────────────────
+function nav(id) {
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('pane-' + id).classList.add('active');
+  const navBtn = document.querySelector(`[onclick="nav('${id}')"]`);
+  if (navBtn) navBtn.classList.add('active');
+}
+
+// ─── Chips ───────────────────────────────────────────────────────────────
+function toggleChip(el) { el.classList.toggle('on'); updateInputCount(); }
+
+function selectRegion(region) {
+  const europeCountries = ['Germany','UK','France','Netherlands','Belgium','Switzerland','Austria','Spain','Portugal','Italy','Ireland','Luxembourg','Sweden','Norway','Denmark','Finland','Iceland','Poland','Czech Republic','Hungary','Romania','Slovakia','Ukraine','Russia','Greece','Croatia','Serbia','Slovenia','Bulgaria','Other Europe'];
+  const americasCountries = ['USA','Canada','Mexico','Brazil','Argentina','Colombia','Chile'];
+  document.querySelectorAll('.chip[data-country]').forEach(chip => {
+    const c = chip.dataset.country;
+    if (region === 'all') chip.classList.add('on');
+    else if (region === 'none') chip.classList.remove('on');
+    else if (region === 'europe') chip.classList.toggle('on', europeCountries.includes(c));
+    else if (region === 'americas') chip.classList.toggle('on', americasCountries.includes(c));
+  });
+}
+
+function getSelectedCountries() {
+  return Array.from(document.querySelectorAll('.chip[data-country].on')).map(c => c.dataset.country);
+}
+
+function setTypeFilter(t) {
+  typeFilter = t;
+  document.getElementById('chip-type-all').classList.toggle('on', t === 'all');
+  document.getElementById('chip-type-poster').classList.toggle('on', t === 'poster');
+  document.getElementById('chip-type-normal').classList.toggle('on', t === 'normal');
+}
+
+// ─── Parse input ─────────────────────────────────────────────────────────
+function parseInput() {
+  const namesRaw = document.getElementById('names-input').value.trim();
+  const urlsRaw = document.getElementById('urls-input').value.trim();
+
+  const nameLines = namesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+  const urlLines = urlsRaw.split('\n').map(s => s.trim());
+
+  return nameLines.map((line, i) => {
+    // support tab or comma separated "url,name" or "name,url"
+    let name = line, url = urlLines[i] || '';
+    if (line.includes('\t')) {
+      const parts = line.split('\t');
+      url = parts[0].startsWith('http') ? parts[0] : parts[1] || '';
+      name = parts[0].startsWith('http') ? parts[1] || parts[0] : parts[0];
+    }
+    return { id: i + 1, name: name.trim(), prevUrl: url.trim(), status: 'pending', newUrl: '', notes: '', country: '', isPoster: false };
+  });
+}
+
+function updateInputCount() {
+  const parsed = parseInput();
+  document.getElementById('input-count').textContent = parsed.length > 0 ? `${parsed.length} companies ready` : '';
+}
+
+document.getElementById('names-input').addEventListener('input', updateInputCount);
+
+// ─── Prepare & run ───────────────────────────────────────────────────────
+function prepareAndRun() {
+  const key = getApiKey();
+  if (!key) { nav('settings'); alert('Please enter your Anthropic API key in Settings first.'); return; }
+
+  companies = parseInput();
+  if (!companies.length) { alert('Please enter at least one company name.'); return; }
+
+  const selectedCountries = getSelectedCountries();
+
+  // Apply country filter (pre-filter is not possible since we don't know countries yet; mark for filtering post-research)
+  // Filter by type post-research; we store the config
+  window._researchConfig = { selectedCountries, typeFilter };
+
+  results = companies.map(c => ({ ...c }));
+
+  // Build live table rows
+  const tbody = document.getElementById('run-tbody');
+  tbody.innerHTML = '';
+  companies.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.id = 'run-row-' + c.id;
+    tr.innerHTML = `
+      <td style="color:var(--text-muted)">${c.id}</td>
+      <td style="font-weight:600">${esc(c.name)}</td>
+      <td>${c.prevUrl ? `<a class="url-link" href="${esc(c.prevUrl)}" target="_blank">${esc(c.prevUrl)}</a>` : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td id="run-status-${c.id}"><span class="badge badge-unknown"><span class="badge-dot"></span>Pending</span></td>
+      <td id="run-newurl-${c.id}" style="color:var(--text-muted)">—</td>
+      <td id="run-notes-${c.id}" class="notes-cell" style="color:var(--text-muted)">—</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  nav('run');
+  startResearch();
+}
+
+// ─── Research engine ─────────────────────────────────────────────────────
+async function startResearch() {
+  running = true; stopFlag = false;
+  document.getElementById('btn-stop').disabled = false;
+
+  const conc = parseInt(document.getElementById('concurrency').value);
+  let done = 0;
+  const total = companies.length;
+  updateProgress(0, total, 'Researching…');
+
+  const queue = [...companies];
+
+  async function worker() {
+    while (queue.length && !stopFlag) {
+      const c = queue.shift();
+      if (!c) continue;
+      document.getElementById('run-status-' + c.id).innerHTML = `<span class="badge badge-searching"><span class="spinner"></span> Searching</span>`;
+      try {
+        const res = await searchCompany(c);
+        Object.assign(c, res);
+        const idx = results.findIndex(r => r.id === c.id);
+        if (idx >= 0) results[idx] = { ...c };
+      } catch(e) {
+        c.status = 'unknown';
+        c.notes = 'Error: ' + e.message;
+        const idx = results.findIndex(r => r.id === c.id);
+        if (idx >= 0) results[idx] = { ...c };
+      }
+      updateRunRow(c);
+      done++;
+      updateProgress(done, total, done < total ? `Researching… (${total - done} remaining)` : 'Complete!');
+    }
+  }
+
+  await Promise.all(Array.from({ length: conc }, () => worker()));
+
+  running = false;
+  document.getElementById('btn-stop').disabled = true;
+  document.getElementById('btn-go-results').style.display = '';
+  document.getElementById('nav-badge-results').textContent = results.length;
+  document.getElementById('nav-badge-results').style.display = '';
+  document.getElementById('btn-csv').style.opacity = '';
+  document.getElementById('btn-txt').style.opacity = '';
+
+  buildResultsPane();
+}
+
+function stopResearch() {
+  stopFlag = true;
+  updateProgress(null, null, 'Stopped.');
+  document.getElementById('btn-go-results').style.display = '';
+}
+
+function updateProgress(done, total, label) {
+  document.getElementById('prog-label').textContent = label || '';
+  if (done !== null) {
+    document.getElementById('prog-count').textContent = `${done} / ${total}`;
+    document.getElementById('prog-fill').style.width = total ? Math.round(done / total * 100) + '%' : '0%';
+  }
+}
+
+function updateRunRow(c) {
+  const statusEl = document.getElementById('run-status-' + c.id);
+  const urlEl = document.getElementById('run-newurl-' + c.id);
+  const notesEl = document.getElementById('run-notes-' + c.id);
+  if (statusEl) statusEl.innerHTML = badgeFor(c.status);
+  if (urlEl) urlEl.innerHTML = c.newUrl ? `<a class="url-link" href="${esc(c.newUrl)}" target="_blank">${esc(c.newUrl)}</a>` : '—';
+  if (notesEl) notesEl.textContent = c.notes || '—';
+}
+
+// ─── Claude API call ─────────────────────────────────────────────────────
+async function searchCompany(c) {
+  const key = getApiKey();
+  const selectedCountries = window._researchConfig?.selectedCountries || [];
+  const countryHint = selectedCountries.length ? `This company is expected to be in one of these countries: ${selectedCountries.join(', ')}.` : 'The company could be from any country.';
+  const prevUrlInfo = c.prevUrl ? `Their previous/known URL was: ${c.prevUrl} — this URL may no longer work.` : 'No previous URL is known.';
+
+  const prompt = `You are a business intelligence researcher. Research the company named "${c.name}".
+
+Context:
+- ${prevUrlInfo}
+- ${countryHint}
+
+Your job:
+1. Search the web to find the CURRENT status of this company: is it still active, has it closed/gone bankrupt, been acquired/merged, or rebranded?
+2. If the company changed its URL or rebranded, find the correct NEW URL.
+3. Determine the company's country of origin precisely (e.g. "Germany", "USA", "Sweden", etc.).
+4. Determine if this company is a POSTER COMPANY (headhunter / recruitment agency / staffing firm / executive search / talent acquisition firm). These are companies that post job ads on behalf of clients, NOT the actual employer. Answer yes or no.
+5. Write a short factual 1–2 sentence summary of what you found (e.g. "Acquired by X in 2022.", "Closed 2023, site offline.", "Rebranded to Y, new domain is y.com.").
+
+Search thoroughly. If the previous URL is dead, investigate why — domain expired, sold, redirected, company closed, merged?
+
+Respond ONLY with a valid JSON object. No markdown, no extra text, no code fences:
+{
+  "status": "active" | "closed" | "merged" | "renamed",
+  "newUrl": "https://newurl.com or empty string if not found or same",
+  "country": "exact country name e.g. Germany",
+  "isPoster": true | false,
+  "notes": "short factual 1-2 sentence summary"
+}`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+  const match = text.match(/\{[\s\S]*?\}/);
+  if (!match) throw new Error('No JSON in AI response');
+
+  const parsed = JSON.parse(match[0]);
+  return {
+    status: ['active','closed','merged','renamed'].includes(parsed.status) ? parsed.status : 'unknown',
+    newUrl: parsed.newUrl || '',
+    country: parsed.country || 'Unknown',
+    isPoster: !!parsed.isPoster,
+    notes: parsed.notes || ''
+  };
+}
+
+// ─── Results pane ─────────────────────────────────────────────────────────
+function buildResultsPane() {
+  // Populate country filter dropdown
+  const countries = [...new Set(results.map(r => r.country).filter(Boolean))].sort();
+  const sel = document.getElementById('filter-country');
+  sel.innerHTML = '<option value="">All countries</option>';
+  countries.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c; o.textContent = c;
+    sel.appendChild(o);
+  });
+
+  // Stats
+  const cfg = window._researchConfig || {};
+  let filtered = results;
+  if (cfg.selectedCountries?.length) filtered = filtered.filter(r => cfg.selectedCountries.includes(r.country) || r.country === 'Unknown');
+  if (cfg.typeFilter === 'poster') filtered = filtered.filter(r => r.isPoster);
+  if (cfg.typeFilter === 'normal') filtered = filtered.filter(r => !r.isPoster);
+
+  const counts = { active: 0, closed: 0, merged: 0, renamed: 0, unknown: 0 };
+  filtered.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${filtered.length}</div><div class="stat-lbl">Total researched</div></div>
+    <div class="stat-card s-active"><div class="stat-num">${counts.active || 0}</div><div class="stat-lbl">Active</div></div>
+    <div class="stat-card s-closed"><div class="stat-num">${counts.closed || 0}</div><div class="stat-lbl">Closed</div></div>
+    <div class="stat-card s-merged"><div class="stat-num">${counts.merged || 0}</div><div class="stat-lbl">Merged / acquired</div></div>
+    <div class="stat-card s-renamed"><div class="stat-num">${counts.renamed || 0}</div><div class="stat-lbl">Renamed / new URL</div></div>
+  `;
+
+  renderResults();
+  document.getElementById('nav-badge-results').textContent = filtered.length;
+  document.getElementById('nav-badge-results').style.display = '';
+}
+
+function renderResults() {
+  const statusF = document.getElementById('filter-status').value;
+  const typeF = document.getElementById('filter-type').value;
+  const countryF = document.getElementById('filter-country').value;
+  const searchF = (document.getElementById('filter-search').value || '').toLowerCase();
+  const cfg = window._researchConfig || {};
+
+  let filtered = results;
+  if (cfg.selectedCountries?.length) filtered = filtered.filter(r => cfg.selectedCountries.includes(r.country) || r.country === 'Unknown');
+  if (cfg.typeFilter === 'poster') filtered = filtered.filter(r => r.isPoster);
+  if (cfg.typeFilter === 'normal') filtered = filtered.filter(r => !r.isPoster);
+  if (statusF) filtered = filtered.filter(r => r.status === statusF);
+  if (typeF === 'poster') filtered = filtered.filter(r => r.isPoster);
+  if (typeF === 'normal') filtered = filtered.filter(r => !r.isPoster);
+  if (countryF) filtered = filtered.filter(r => r.country === countryF);
+  if (searchF) filtered = filtered.filter(r => r.name.toLowerCase().includes(searchF));
+
+  const tbody = document.getElementById('results-tbody');
+  tbody.innerHTML = '';
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">No results match your filters.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--text-muted);font-size:12px">${i+1}</td>
+      <td style="font-weight:600;white-space:nowrap">${esc(r.name)}</td>
+      <td style="font-size:12px;white-space:nowrap">${esc(r.country || '—')}</td>
+      <td>${r.isPoster ? '<span class="badge badge-poster">Headhunter</span>' : '<span class="badge badge-normal">Normal</span>'}</td>
+      <td>${r.prevUrl ? `<a class="url-link" href="${esc(r.prevUrl)}" target="_blank">${esc(r.prevUrl)}</a>` : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>${badgeFor(r.status)}</td>
+      <td>${r.newUrl ? `<a class="url-link" href="${esc(r.newUrl)}" target="_blank">${esc(r.newUrl)}</a>` : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td class="notes-cell">${esc(r.notes || '—')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function clearFilters() {
+  document.getElementById('filter-status').value = '';
+  document.getElementById('filter-type').value = '';
+  document.getElementById('filter-country').value = '';
+  document.getElementById('filter-search').value = '';
+  renderResults();
+}
+
+// ─── Badges ──────────────────────────────────────────────────────────────
+function badgeFor(status) {
+  const map = {
+    active:    ['badge-active',    'Active'],
+    closed:    ['badge-closed',    'Closed'],
+    merged:    ['badge-merged',    'Merged / acquired'],
+    renamed:   ['badge-renamed',   'New URL'],
+    unknown:   ['badge-unknown',   'Unknown'],
+    searching: ['badge-searching', 'Searching…'],
+    pending:   ['badge-unknown',   'Pending']
+  };
+  const [cls, label] = map[status] || ['badge-unknown', status];
+  return `<span class="badge ${cls}"><span class="badge-dot"></span>${label}</span>`;
+}
+
+// ─── Export ───────────────────────────────────────────────────────────────
+function getFilteredResults() {
+  const cfg = window._researchConfig || {};
+  let filtered = results;
+  if (cfg.selectedCountries?.length) filtered = filtered.filter(r => cfg.selectedCountries.includes(r.country) || r.country === 'Unknown');
+  if (cfg.typeFilter === 'poster') filtered = filtered.filter(r => r.isPoster);
+  if (cfg.typeFilter === 'normal') filtered = filtered.filter(r => !r.isPoster);
+  return filtered;
+}
+
+function downloadCSV() {
+  const rows = getFilteredResults();
+  if (!rows.length) { alert('No results to export.'); return; }
+  const headers = ['#','Company Name','Country','Type','Previous URL','Status','New / Current URL','Notes'];
+  const csv = [
+    headers.join(','),
+    ...rows.map((r, i) => [
+      i+1, r.name, r.country,
+      r.isPoster ? 'Headhunter/Poster' : 'Normal company',
+      r.prevUrl, r.status, r.newUrl, r.notes
+    ].map(v => '"' + String(v || '').replace(/"/g, '""') + '"').join(','))
+  ].join('\r\n');
+  dl('company_status_results.csv', csv, 'text/csv;charset=utf-8;');
+}
+
+function downloadTXT() {
+  const rows = getFilteredResults();
+  if (!rows.length) { alert('No results to export.'); return; }
+
+  const line = s => s;
+  const sep = '─'.repeat(55);
+  const lines = [
+    'COMPANY STATUS RESEARCH REPORT',
+    sep,
+    `Generated : ${new Date().toLocaleString()}`,
+    `Total     : ${rows.length} companies`,
+    '',
+  ];
+
+  const groups = { active: [], closed: [], merged: [], renamed: [], unknown: [] };
+  rows.forEach(r => { const k = groups[r.status] ? r.status : 'unknown'; groups[k].push(r); });
+
+  const labels = {
+    active:  '✓ ACTIVE',
+    closed:  '✗ CLOSED / DEFUNCT',
+    merged:  '⇒ MERGED / ACQUIRED',
+    renamed: '↳ RENAMED / NEW URL',
+    unknown: '? UNKNOWN STATUS'
+  };
+
+  Object.entries(labels).forEach(([key, lbl]) => {
+    const grp = groups[key];
+    if (!grp.length) return;
+    lines.push(lbl + ` (${grp.length})`);
+    lines.push(sep);
+    grp.forEach(r => {
+      lines.push(`Company  : ${r.name}`);
+      if (r.country) lines.push(`Country  : ${r.country}`);
+      lines.push(`Type     : ${r.isPoster ? 'Headhunter / Poster' : 'Normal company'}`);
+      if (r.prevUrl) lines.push(`Old URL  : ${r.prevUrl}`);
+      if (r.newUrl)  lines.push(`New URL  : ${r.newUrl}`);
+      if (r.notes)   lines.push(`Notes    : ${r.notes}`);
+      lines.push('');
+    });
+  });
+
+  dl('company_status_report.txt', lines.join('\n'), 'text/plain;charset=utf-8;');
+}
+
+function dl(name, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// ─── API key ─────────────────────────────────────────────────────────────
+function getApiKey() { return localStorage.getItem('anthropic_api_key') || ''; }
+function saveKey() {
+  const v = document.getElementById('api-key-input').value.trim();
+  if (v) localStorage.setItem('anthropic_api_key', v);
+}
+function toggleKeyVis() {
+  const el = document.getElementById('api-key-input');
+  const btn = document.querySelector('.api-toggle');
+  if (el.type === 'password') { el.type = 'text'; btn.textContent = 'hide'; }
+  else { el.type = 'password'; btn.textContent = 'show'; }
+}
+
+// ─── Utils ───────────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = getApiKey();
+  if (saved) document.getElementById('api-key-input').value = saved;
+  updateInputCount();
+});
+</script>
+</body>
+</html>
